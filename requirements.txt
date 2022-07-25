@@ -1,4 +1,8 @@
 pre-commit
 black
 flake8
-redis
+sqlalchemy
+pydantic
+ccxt
+pytest
+pytest-asyncio
