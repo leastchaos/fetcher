@@ -5,9 +5,21 @@ import redis
 import ujson
 
 # get a url that points to the redis server in the same folder as file
-URL = f"unix:///{os.path.join(os.getcwd(), 'data', 'fetcher.sock')}"
+FILENAME = "fetcher.sock"
 SEPERATOR = "::"
 
+
+def get_url():
+    """search for the url to the redis server"""
+    for root, dirs, files in os.walk(os.path.dirname(os.getcwd())):
+        for file in files:
+            if file == FILENAME:
+                return "unix:///" + os.path.join(root, file)
+    return None
+
+
+URL = get_url()
+print(URL)
 
 def get_redis(url=URL) -> redis.Redis:
     """get redis client"""
