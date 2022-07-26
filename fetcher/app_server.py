@@ -1,19 +1,20 @@
 """collect data from exchange and store in database"""
 import asyncio
-import logging
+
 from typing import Any, Awaitable, Callable
 
 import async_timeout
 import redis
 from fetcher.client import get_clients
 from fetcher.database import get_redis, get_key, store_data
+from fetcher.utils import setup_logging
 
 try:
     import ccxtpro as ccxt
 except ImportError:
     import ccxt.async_support as ccxt
 
-logger = logging.getLogger(__name__)
+logger = setup_logging(__name__)
 balances: dict[str, dict[str, Any]] = {}
 
 
@@ -26,8 +27,8 @@ def push_data(
 ) -> None:
     """store data in database"""
     key = get_key(table, account_name)
+    logger.info("%s: %s", key, value)
     store_data(redis_client, key, value, expiry)
-
 
 
 def parse_balance(balance: dict[str, Any]) -> dict[str, Any]:
@@ -71,7 +72,7 @@ async def safe_timeout_method(
         async with async_timeout.timeout(timeout):
             return await func(*args)
     except (ccxt.errors.NetworkError, asyncio.TimeoutError) as err:
-        logging.error("%s(%s) failed: %s", func.__name__, args, err)
+        logger.error("%s(%s) failed: %s", func.__name__, args, err)
     if not fail_func:
         return fail_result
     return await safe_timeout_method(
@@ -113,7 +114,6 @@ async def shutdown(clients: dict[str, ccxt.Exchange]) -> None:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     exchanges = get_clients()
     database = get_redis()
     asyncio.run(start_balance_loop(exchanges, database))

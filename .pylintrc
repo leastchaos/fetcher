@@ -4,3 +4,6 @@
 # run arbitrary code. (This is an alternative name to extension-pkg-allow-list
 # for backward compatibility.)
 extension-pkg-whitelist=pydantic,ujson,cython
+
+[FORMAT]
+max-line-length=88
