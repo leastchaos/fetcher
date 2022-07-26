@@ -1,8 +1,9 @@
 pre-commit
 black
 flake8
-sqlalchemy
 pydantic
 ccxt
 pytest
 pytest-asyncio
+ujson
+redis
