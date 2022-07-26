@@ -41,15 +41,15 @@ def parse_balance(balance: dict[str, Any]) -> dict[str, Any]:
 
 
 async def start_balance_loop(
-    clients: dict[str, ccxt.Exchange], db: redis.Redis
+    clients: dict[str, ccxt.Exchange], redis_db: redis.Redis
 ) -> None:
     """collect data from exchange and store in database"""
     tasks = []
     for client in clients.values():
         if client.has.get("watchBalance"):
-            tasks.append(asyncio.create_task(watch_balance_loop(client, db)))
+            tasks.append(asyncio.create_task(watch_balance_loop(client, redis_db)))
         else:
-            tasks.append(asyncio.create_task(fetch_balance_loop(client, db)))
+            tasks.append(asyncio.create_task(fetch_balance_loop(client, redis_db)))
     try:
         await asyncio.gather(*tasks)
     except (asyncio.CancelledError, KeyboardInterrupt):
@@ -115,5 +115,5 @@ async def shutdown(clients: dict[str, ccxt.Exchange]) -> None:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     exchanges = get_clients()
-    redis_db = get_redis()
-    asyncio.run(start_balance_loop(exchanges, redis_db))
+    database = get_redis()
+    asyncio.run(start_balance_loop(exchanges, database))
