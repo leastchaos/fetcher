@@ -5,7 +5,7 @@ import redis
 import ujson
 
 # get a url that points to the redis server in the same folder as file
-URL = f"unix:///{os.path.join(os.path.dirname(__file__), 'data', 'redis.sock')}"
+URL = f"unix:///{os.path.join(os.path.dirname(__file__), 'data', 'fetcher.sock')}"
 SEPERATOR = "::"
 
 
