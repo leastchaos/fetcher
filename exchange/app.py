@@ -5,7 +5,7 @@ import logging
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 
-from fetcher.database import get_data, get_key, get_redis
+from exchange.database import get_data, get_key, get_redis
 
 app = FastAPI()
 

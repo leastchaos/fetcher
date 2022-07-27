@@ -1,8 +1,8 @@
 """fetch kucoin loans"""
 import logging
 
-from fetcher.component.loan.data_type import LoanDict, LoanDictBySymbolById
-from fetcher.utils import safe_get_float, safe_timeout_method
+from exchange.component.loan.data_type import LoanDict, LoanDictBySymbolById
+from exchange.utils import safe_get_float, safe_timeout_method
 
 try:
     import ccxtpro as ccxt

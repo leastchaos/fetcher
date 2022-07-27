@@ -2,11 +2,11 @@
 import asyncio
 import logging
 
-from fetcher.client import get_clients
-from fetcher.component.balance import start_balance_loop
-from fetcher.component.loan import start_loans_loop
-from fetcher.database import get_redis
-from fetcher.utils import setup_logging
+from exchange.client import get_clients
+from exchange.component.balance import start_balance_loop
+from exchange.component.loan import start_loans_loop
+from exchange.database import get_redis
+from exchange.utils import setup_logging
 
 
 async def main():

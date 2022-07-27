@@ -4,6 +4,7 @@ from typing import TypedDict
 
 class LoanDict(TypedDict):
     """loan dict"""
+
     timestamp: int
     amount: float
     asset: str

@@ -10,8 +10,8 @@ install_redis:
 
 start_fetcher_redis:
 	echo "starting redis-server conf/redis_bot.conf"
-	redis-server fetcher/config/redis.conf
+	redis-server config/redis.conf
 
-start_app:
+start_exchange_app:
 	echo "starting app server"
 	uvicorn fetcher.app:app --reload

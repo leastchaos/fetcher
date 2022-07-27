@@ -11,7 +11,7 @@ import coloredlogs
 import redis
 from async_timeout import Any
 
-from fetcher.database import get_key, store_data
+from exchange.database import get_key, store_data
 
 ListOfDict = list[dict[str, Any]]
 
