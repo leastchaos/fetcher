@@ -1,7 +1,7 @@
 """test fetcher database"""
 import redis
 
-from exchange.database import get_key, get_redis
+from src.exchange.database import get_key, get_redis
 
 
 def test_get_redis():

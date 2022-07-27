@@ -1,6 +1,6 @@
 """fetch gateio loan"""
-from exchange.component.loan.data_type import LoanDict, LoanDictBySymbolById
-from exchange.utils import safe_get_float, safe_get_float_2
+from src.exchange.component.loan.data_type import LoanDict, LoanDictSymbolId
+from src.exchange.utils import safe_get_float, safe_get_float_2
 
 try:
     import ccxtpro as ccxt
@@ -53,7 +53,7 @@ def parse_loan(value: dict, update_time: float = None) -> LoanDict:
     }
 
 
-async def fetch_gateio_cross_loan(client: ccxt.gateio) -> LoanDictBySymbolById:
+async def fetch_gateio_cross_loan(client: ccxt.gateio) -> LoanDictSymbolId:
     """watch ccxt loans and update self._loans"""
     if not hasattr(fetch_gateio_cross_loan, "loan_details"):
         fetch_gateio_cross_loan.loan_details = {}
@@ -64,7 +64,7 @@ async def fetch_gateio_cross_loan(client: ccxt.gateio) -> LoanDictBySymbolById:
         params={"status": 3}
     )
     loans.extend(completed_loans)
-    loans_cache: LoanDictBySymbolById = {}
+    loans_cache: LoanDictSymbolId = {}
     for loan in loans:
         currency = loan["currency"]
         if currency not in fetch_gateio_cross_loan.loan_details:
@@ -83,7 +83,7 @@ async def fetch_gateio_cross_loan(client: ccxt.gateio) -> LoanDictBySymbolById:
     return loans_cache
 
 
-async def fetch_gateio_isolated_loan(client: ccxt.gateio) -> LoanDictBySymbolById:
+async def fetch_gateio_isolated_loan(client: ccxt.gateio) -> LoanDictSymbolId:
     """watch ccxt loans and update self._loans"""
     if not hasattr(fetch_gateio_cross_loan, "loan_details"):
         fetch_gateio_cross_loan.loan_details = {}
@@ -94,7 +94,7 @@ async def fetch_gateio_isolated_loan(client: ccxt.gateio) -> LoanDictBySymbolByI
         params={"status": 3}
     )
     loans.extend(completed_loans)
-    loans_cache: LoanDictBySymbolById = {}
+    loans_cache: LoanDictSymbolId = {}
     for loan in loans:
         currency = loan["currency"]
         if currency not in fetch_gateio_cross_loan.loan_details:

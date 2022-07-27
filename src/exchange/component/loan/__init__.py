@@ -4,9 +4,9 @@ from typing import Awaitable, Callable
 
 import redis
 
-from exchange.component.loan.data_type import LoanDictBySymbolById
-from exchange.component.loan.kucoin import fetch_kucoin_loan
-from exchange.utils import push_data, safe_timeout_method
+from src.exchange.component.loan.data_type import LoanDictSymbolId
+from src.exchange.component.loan.kucoin import fetch_kucoin_loan
+from src.exchange.utils import push_data, safe_timeout_method
 
 from .gateio import fetch_gateio_cross_loan, fetch_gateio_isolated_loan
 
@@ -26,7 +26,7 @@ loan_methods = {
 
 def get_loan_method(
     client: ccxt.Exchange,
-) -> Callable[[ccxt.Exchange], Awaitable[LoanDictBySymbolById]] | None:
+) -> Callable[[ccxt.Exchange], Awaitable[LoanDictSymbolId]] | None:
     """get loan method"""
     exchange_name = client.id
     market_type = client.options.get("defaultType")

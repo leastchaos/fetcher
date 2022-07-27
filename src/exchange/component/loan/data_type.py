@@ -15,4 +15,4 @@ class LoanDict(TypedDict):
     unpaid_interest: float
 
 
-LoanDictBySymbolById = dict[str, dict[str, LoanDict]]
+LoanDictSymbolId = dict[str, dict[str, LoanDict]]

@@ -4,7 +4,7 @@ from typing import Any
 
 import redis
 
-from exchange.utils import push_data, safe_timeout_method
+from src.exchange.utils import push_data, safe_timeout_method
 
 try:
     import ccxtpro as ccxt

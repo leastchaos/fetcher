@@ -13,15 +13,18 @@ start_fetcher_redis:
 	echo "starting redis-server conf/redis_bot.conf"
 	redis-server config/redis.conf
 
+start_app:
+	echo "starting app"
+	uvicorn src.app:app --reload 
 start_exchange_app:
 	echo "starting app server"
-	uvicorn exchange.app:app --reload
+	uvicorn src.exchange.app:app --reload
 
 start_exchange_server:
 	echo "starting exchange server"
 	$(CONDA_ACTIVATE) $(ENV)
-	python exchange/app_server.py
+	python src/exchange/main.py
 
 start_wallet_app:
 	echo "starting wallet app"
-	uvicorn wallet.app:app --reload
+	uvicorn src.wallet.app:app --reload

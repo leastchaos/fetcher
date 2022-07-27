@@ -1,5 +1,6 @@
 """define the expected input to generate ccxt exchange class"""
 import logging
+import os
 from pathlib import Path
 from typing import Any, Literal
 
@@ -12,7 +13,7 @@ except ImportError:
     import ccxt.async_support as ccxt
 
 AllowedType = Literal["main", "trade", "spot", "margin", "future", "swap"]
-CREDENTIALS = "./exchange/credentials/credentials.yml"
+CREDENTIALS = os.path.join(os.path.dirname(__file__), "credentials/credentials.yml")
 
 
 class AccountInfo(BaseModel):

@@ -1,7 +1,7 @@
 """get data from database with flask"""
 from fastapi import APIRouter
 
-from exchange.database import get_data, get_key, get_redis
+from src.exchange.database import get_data, get_key, get_redis
 
 app = APIRouter(prefix="/exchange", tags=["exchange"])
 
