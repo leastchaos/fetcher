@@ -15,9 +15,13 @@ start_fetcher_redis:
 
 start_exchange_app:
 	echo "starting app server"
-	uvicorn fetcher.app:app --reload
+	uvicorn exchange.app:app --reload
 
 start_exchange_server:
 	echo "starting exchange server"
 	$(CONDA_ACTIVATE) $(ENV)
 	python exchange/app_server.py
+
+start_wallet_app:
+	echo "starting wallet app"
+	uvicorn wallet.app:app --reload
