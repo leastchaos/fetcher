@@ -1,6 +1,7 @@
 .ONESHELL:
 SHELL = /bin/bash
 CONDA_ACTIVATE = source $$(conda info --base)/etc/profile.d/conda.sh ; conda activate ; conda activate
+ENV = fetcher
 
 install_redis:
 	curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
@@ -15,3 +16,8 @@ start_fetcher_redis:
 start_exchange_app:
 	echo "starting app server"
 	uvicorn fetcher.app:app --reload
+
+start_exchange_server:
+	echo "starting exchange server"
+	$(CONDA_ACTIVATE) $(ENV)
+	python exchange/app_server.py
