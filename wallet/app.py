@@ -6,10 +6,10 @@ from typing import Any
 
 import requests
 import yaml
-from fastapi import FastAPI
+from fastapi import APIRouter
 from pydantic import BaseModel
 
-app = FastAPI()
+app = APIRouter(prefix="/wallet", tags=["wallet"])
 
 BASE_URL = "https://api.covalenthq.com/v1/"
 CREDENTIALS = os.path.join(os.path.dirname(__file__), "credentials.yml")
@@ -41,7 +41,7 @@ def get_chains():
     return {data["label"]: data["chain_id"] for data in response["data"]["items"]}
 
 
-@app.get("/wallet/{address}/{chain_id}")
+@app.get("/balance/{address}/{chain_id}")
 def get_wallet_balance(chain_id: str, address: str):
     """returns the data for the address"""
     url = f"{BASE_URL}{chain_id}/address/{address}/balances_v2/"
@@ -53,7 +53,7 @@ def get_wallet_balance(chain_id: str, address: str):
     return response.json()
 
 
-@app.get("/wallet/{account_name}")
+@app.get("/chain_balance/{account_name}")
 def get_wallet_chain_balance(account_name: str) -> dict[str, Any]:
     """returns the data for the address"""
     config = get_config()
@@ -67,7 +67,7 @@ def get_wallet_chain_balance(account_name: str) -> dict[str, Any]:
     }
 
 
-@app.get("/wallets")
+@app.get("/balances")
 def get_wallet_balances() -> dict[str, dict[str, Any]]:
     """main function"""
     config = get_config()
@@ -94,7 +94,7 @@ class WalletInfo(BaseModel):
     chain_names: list[str]
 
 
-@app.post("/wallet/")
+@app.post("/credential/")
 def add_credentials(info: WalletInfo) -> dict:
     """add credentials to the config"""
     config = get_config()
@@ -107,7 +107,7 @@ def add_credentials(info: WalletInfo) -> dict:
     return config["accounts"][info.account_name]
 
 
-@app.delete("/wallet/{account_name}")
+@app.delete("/credential/{account_name}")
 def delete_credentials(account_name: str) -> dict:
     """delete credentials from the config"""
     config = get_config()
