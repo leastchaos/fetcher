@@ -12,7 +12,7 @@ except ImportError:
     import ccxt.async_support as ccxt
 
 AllowedType = Literal["main", "trade", "spot", "margin", "future", "swap"]
-CREDENTIALS = "./credentials/credentials.yml"
+CREDENTIALS = "./fetcher/credentials/credentials.yml"
 
 
 class AccountInfo(BaseModel):
