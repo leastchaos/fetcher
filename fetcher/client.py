@@ -11,7 +11,6 @@ try:
 except ImportError:
     import ccxt.async_support as ccxt
 
-logger = logging.getLogger(__name__)
 AllowedType = Literal["main", "trade", "spot", "margin", "future", "swap"]
 CREDENTIALS = "./credentials/credentials.yml"
 
@@ -54,7 +53,7 @@ def get_clients(credentials: str = CREDENTIALS) -> dict[str, ccxt.Exchange]:
         with credentials_path.open(encoding="utf-8") as file:
             credentials: dict[str, dict[str, Any]] = yaml.full_load(file)
     except yaml.YAMLError as err:
-        logger.error("%s is not a valid file", err)
+        logging.error("%s is not a valid file", err)
         raise
     return {
         account_name: get_client(AccountInfo.parse_obj(account_info), account_name)

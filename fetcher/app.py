@@ -1,13 +1,12 @@
 """get data from database with flask"""
 import asyncio
+import logging
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 
 from fetcher.database import get_data, get_key, get_redis
-from fetcher.utils import setup_logging
 
-logger = setup_logging(__name__)
 app = FastAPI()
 
 html = """
@@ -58,6 +57,14 @@ def get_balance(account_name: str) -> dict[str, dict[str, float] | float]:
     return get_data(redis_client, key)
 
 
+@app.get("/loans/{account_name}")
+def get_loans(account_name: str) -> dict[str, dict[str, float] | float]:
+    """get loan"""
+    redis_client = get_redis()
+    key = get_key("loan", account_name)
+    return get_data(redis_client, key)
+
+
 @app.websocket("/ws")
 async def websocket_balance(
     websocket: WebSocket, interval: float = 1
@@ -76,4 +83,4 @@ async def websocket_balance(
                 prev_data = data
             await asyncio.sleep(interval)
     except WebSocketDisconnect:
-        logger.info("Connection closed")
+        logging.info("Connection closed")

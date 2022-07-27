@@ -1,14 +1,13 @@
 """fetch kucoin loans"""
+import logging
+
 from fetcher.component.loan.data_type import LoanDict, LoanDictBySymbolById
-from fetcher.utils import safe_get_float, safe_timeout_method, setup_logging
+from fetcher.utils import safe_get_float, safe_timeout_method
 
 try:
     import ccxtpro as ccxt
 except ImportError:
     import ccxt.async_support as ccxt
-
-
-logger = setup_logging(__name__)
 
 
 def parse_loan(value: dict, update_time: float = None) -> LoanDict:
@@ -40,16 +39,17 @@ def parse_loan(value: dict, update_time: float = None) -> LoanDict:
 
 async def fetch_kucoin_loan(client: ccxt.Exchange) -> LoanDictBySymbolById:
     """update loan"""
-    logger.info("fetching loan for %s", client.account_name)
+    logging.info("fetching loan for %s", client.options["name"])
     loan: dict = await safe_timeout_method(
-        client.private_get_margin_borrow_outstanding, {"pageSize": "500"}, logger=logger
+        client.private_get_margin_borrow_outstanding,
+        {"pageSize": "50"},
     )
     if not loan and not loan.get("data", {}).get("items"):
         return []
     loans: list[dict] = loan.get("data", {}).get("items")
     loans_by_symbol_by_id: LoanDictBySymbolById = {}
     for loan in loans:
-        loan_dict = parse_loan(loan, update_time=loan.get("createdAt"))
+        loan_dict = parse_loan(loan, client.milliseconds())
         symbol = loan_dict["asset"]
         if symbol not in loans_by_symbol_by_id:
             loans_by_symbol_by_id[symbol] = {}

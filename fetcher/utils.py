@@ -2,25 +2,27 @@
 import asyncio
 import logging
 from logging import Logger
-from logging.handlers import RotatingFileHandler  # pylint: disable=unused-import
+from logging.handlers import RotatingFileHandler
 from typing import Awaitable, Callable
 
 import async_timeout
 import ccxt
 import coloredlogs
+import redis
 from async_timeout import Any
+
+from fetcher.database import get_key, store_data
 
 ListOfDict = list[dict[str, Any]]
 
 
 def setup_logging(
-    name: str,
     log_level=logging.INFO,
     log_file_level=logging.INFO,
     log_filename="./logs/default.log",
 ) -> Logger:
     """Setup root logger and quiet some levels."""
-    logger = logging.getLogger(name)
+    logger = logging.getLogger()
 
     # Set log format to dislay the logger name
     # and to hunt down verbose logging modules
@@ -28,12 +30,12 @@ def setup_logging(
 
     # Use colored logging output for console
     coloredlogs.install(level=log_level, fmt=fmt, logger=logger)
+    logging.getLogger("asyncio").setLevel(logging.FATAL)
+    logging.getLogger("ccxt.base.exchange").setLevel(logging.FATAL)
 
     if log_filename:
         # Append to the log file
-        handler = logging.handlers.RotatingFileHandler(
-            log_filename, "a", maxBytes=500000, backupCount=2
-        )
+        handler = RotatingFileHandler(log_filename, "a", maxBytes=500000, backupCount=2)
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
@@ -94,3 +96,16 @@ def safe_get_key_2(target: dict, key1: Any, key2: Any, default: Any = None) -> A
     to get key 2 from dict if key 1 does not exist
     """
     return target.get(key1, target.get(key2, default))
+
+
+def push_data(
+    redis_client: redis.Redis,
+    table: str,
+    name: str,
+    value: Any,
+    expiry: float = 300,
+) -> None:
+    """helper function to push data to redis"""
+    key = get_key(table, name)
+    logging.info("push data to redis: %s", key)
+    store_data(redis_client, key, value, expiry)

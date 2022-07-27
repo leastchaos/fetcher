@@ -21,6 +21,7 @@ def get_url():
 URL = get_url()
 print(URL)
 
+
 def get_redis(url=URL) -> redis.Redis:
     """get redis client"""
     return redis.from_url(url=url)
