@@ -8,3 +8,5 @@ pytest-asyncio
 ujson
 redis
 coloredlogs
+fastapi
+uvloop
