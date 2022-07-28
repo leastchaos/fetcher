@@ -1,2 +1,2 @@
 # fetcher
-practice flask and redis
+practice api and redis
