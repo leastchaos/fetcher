@@ -4,8 +4,8 @@ from typing import Awaitable, Callable
 
 import redis
 
-from src.exchange.component.loan.data_type import LoanDictSymbolId
 from src.exchange.component.loan.kucoin import fetch_kucoin_loan
+from src.exchange.component.loan.models import LoanDictSymbolId
 from src.exchange.utils import push_data, safe_timeout_method
 
 from .gateio import fetch_gateio_cross_loan, fetch_gateio_isolated_loan

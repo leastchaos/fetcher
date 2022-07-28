@@ -1,5 +1,5 @@
 """fetch gateio loan"""
-from src.exchange.component.loan.data_type import LoanDict, LoanDictSymbolId
+from src.exchange.component.loan.models import LoanDict, LoanDictSymbolId
 from src.exchange.utils import safe_get_float, safe_get_float_2
 
 try:
