@@ -2,23 +2,11 @@
 from fastapi import APIRouter
 
 from src.exchange.database import get_data, get_key, get_redis
-from src.exchange.models.loans import NameSymbolIdLoan, SymbolIdLoan
+from src.exchange.models.loans import Loan, NameSymbolIdLoan, SymbolIdLoan
 
 from .models.balance import Balance
 
 app = APIRouter(prefix="/exchange", tags=["exchange"])
-
-
-def parse_balance(balance: dict[str, dict[str, float]]) -> dict[str, dict[str, float]]:
-    """delete all asset that is equal to 0"""
-    assets_to_delete = [
-        asset for asset, value in balance["total"].items() if value == 0
-    ]
-    for asset in assets_to_delete:
-        del balance["total"][asset]
-        del balance["free"][asset]
-        del balance["used"][asset]
-    return balance
 
 
 @app.get("/balance/{account_name}", response_model=Balance)
@@ -27,7 +15,6 @@ def get_balance(account_name: str) -> Balance:
     redis_client = get_redis()
     key = get_key("balance", account_name)
     data = get_data(redis_client, key)
-    data = parse_balance(data)
     return Balance.parse_obj(data)
 
 
@@ -39,7 +26,6 @@ def get_balances() -> dict[str, Balance]:
     balances = {}
     for key in keys[1]:
         data = get_data(redis_client, key)
-        data = parse_balance(data)
         balances[str(key, "utf-8").split("::")[1]] = Balance.parse_obj(data)
     return balances
 
@@ -49,7 +35,10 @@ def get_loan(account_name: str) -> SymbolIdLoan:
     """get loan"""
     redis_client = get_redis()
     key = get_key("loan", account_name)
-    return get_data(redis_client, key)
+    return {
+        symbol: {id: Loan.parse_obj(data) for id, data in symbol_loans.items()}
+        for symbol, symbol_loans in get_data(redis_client, key).items()
+    }
 
 
 @app.get("/loans", response_model=NameSymbolIdLoan)
@@ -57,7 +46,5 @@ def get_loans() -> NameSymbolIdLoan:
     """get all loan"""
     redis_client = get_redis()
     keys = redis_client.scan(match="loan::*", count=100)
-    data = {}
-    for key in keys[1]:
-        data[str(key, "UTF-8").split("::")[1]] = get_data(redis_client, key)
-    return data
+    account_names = [str(key, "utf-8").split("::")[1] for key in keys[1]]
+    return {account_name: get_loan(account_name) for account_name in account_names}

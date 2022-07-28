@@ -14,6 +14,13 @@ except ImportError:
 
 def parse_balance(balance: dict[str, Any]) -> dict[str, Any]:
     """parse balance"""
+    assets_to_delete = [
+        asset for asset, value in balance["total"].items() if value == 0
+    ]
+    for asset in assets_to_delete:
+        del balance["total"][asset]
+        del balance["free"][asset]
+        del balance["used"][asset]
     return {
         "free": balance["free"],
         "used": balance["used"],

@@ -13,7 +13,9 @@ except ImportError:
     import ccxt.async_support as ccxt
 
 AllowedType = Literal["main", "trade", "spot", "margin", "future", "swap"]
-CREDENTIALS = os.path.join(os.path.dirname(__file__), "credentials/credentials.yml")
+CREDENTIALS = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)), "credentials/credentials.yml"
+)
 
 
 class AccountInfo(BaseModel):

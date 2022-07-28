@@ -2,19 +2,14 @@ import asyncio
 import logging
 from typing import Awaitable, Callable
 
+import ccxt.async_support as ccxt
 import redis
 
 from src.exchange.component.loan.kucoin import fetch_kucoin_loan
-from src.exchange.component.loan.models import LoanDictSymbolId
+from src.exchange.models.loans import SymbolIdLoan
 from src.exchange.utils import push_data, safe_timeout_method
 
 from .gateio import fetch_gateio_cross_loan, fetch_gateio_isolated_loan
-
-try:
-    import ccxtpro as ccxt
-except ImportError:
-    import ccxt.async_support as ccxt
-
 
 loan_methods = {
     ("gateio", "spot", "cross"): fetch_gateio_cross_loan,
@@ -26,7 +21,7 @@ loan_methods = {
 
 def get_loan_method(
     client: ccxt.Exchange,
-) -> Callable[[ccxt.Exchange], Awaitable[LoanDictSymbolId]] | None:
+) -> Callable[[ccxt.Exchange], Awaitable[SymbolIdLoan]] | None:
     """get loan method"""
     exchange_name = client.id
     market_type = client.options.get("defaultType")

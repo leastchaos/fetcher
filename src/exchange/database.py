@@ -3,6 +3,7 @@ import os
 
 import redis
 import ujson
+from sqlmodel import SQLModel
 
 # get a url that points to the redis server in the same folder as file
 FILENAME = "fetcher.sock"
@@ -39,7 +40,7 @@ def deserialize(data: str | None) -> dict:
     return ujson.loads(data)
 
 
-def serialize(data: dict | str | None) -> str:
+def serialize(data: SQLModel | dict | str | None) -> str:
     """serialize data"""
     if not data:
         return ""

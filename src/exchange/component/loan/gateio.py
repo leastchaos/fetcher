@@ -1,14 +1,11 @@
 """fetch gateio loan"""
-from src.exchange.models.loans import Loan, SymbolIdLoan
+import ccxt.async_support as ccxt
+
+from src.exchange.models.loans import SymbolIdLoan
 from src.exchange.utils import safe_get_float, safe_get_float_2
 
-try:
-    import ccxtpro as ccxt
-except ImportError:
-    import ccxt.async_support as ccxt
 
-
-def parse_loan(value: dict, update_time: float = None) -> Loan:
+def parse_loan(value: dict, update_time: float = None) -> dict:
     """
     loans structure
 
@@ -41,20 +38,16 @@ def parse_loan(value: dict, update_time: float = None) -> Loan:
     'status': 'loaned',
     'unpaid_interest': '0.376666666669'}
     """
-    return Loan.parse_obj(
-        {
-            "timestamp": safe_get_float(value, "update_time", update_time),
-            "amount": safe_get_float(value, "amount"),
-            "asset": value.get("currency"),
-            "id": value.get("id"),
-            "rate": safe_get_float(value, "rate"),
-            "repaid": safe_get_float(value, "repaid"),
-            "repaid_interest": safe_get_float_2(
-                value, "repaid_interest", "paid_interest"
-            ),
-            "unpaid_interest": safe_get_float(value, "unpaid_interest"),
-        }
-    )
+    return {
+        "timestamp": safe_get_float(value, "update_time", update_time),
+        "amount": safe_get_float(value, "amount"),
+        "asset": value.get("currency"),
+        "id": value.get("id"),
+        "rate": safe_get_float(value, "rate"),
+        "repaid": safe_get_float(value, "repaid"),
+        "repaid_interest": safe_get_float_2(value, "repaid_interest", "paid_interest"),
+        "unpaid_interest": safe_get_float(value, "unpaid_interest"),
+    }
 
 
 async def fetch_gateio_cross_loan(client: ccxt.gateio) -> SymbolIdLoan:
