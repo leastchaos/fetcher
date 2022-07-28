@@ -2,8 +2,8 @@
 import asyncio
 import logging
 
-from src.exchange.client import get_clients
 from src.exchange.component.balance import start_balance_loop
+from src.exchange.component.client import get_clients
 from src.exchange.component.loan import start_loans_loop
 from src.exchange.database import get_redis
 from src.exchange.utils import setup_logging

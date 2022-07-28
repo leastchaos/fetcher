@@ -3,7 +3,7 @@ import asyncio
 
 import pytest
 
-from src.exchange.client import AccountInfo, get_client, get_clients
+from src.exchange.component.client import AccountInfo, get_client, get_clients
 
 
 def test_get_client():
