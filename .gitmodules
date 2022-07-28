@@ -1,0 +1,3 @@
+[submodule "src/hb_app"]
+	path = src/hb_app
+	url = https://github.com/leastchaos/hb_app
