@@ -21,7 +21,7 @@ def get_balances() -> dict[str, dict[str, dict[str, float] | float]]:
     keys = redis_client.scan(match="balance::*", count=100)
     data = {}
     for key in keys[1]:
-        data[str(key).split("::")[1]] = get_data(redis_client, key)
+        data[str(key, "UTF-8").split("::")[1]] = get_data(redis_client, key)
     return data
 
 
@@ -30,6 +30,7 @@ def get_loan(account_name: str) -> dict[str, dict[str, float] | float]:
     """get loan"""
     redis_client = get_redis()
     key = get_key("loan", account_name)
+    print(get_data(redis_client, key))
     return get_data(redis_client, key)
 
 
@@ -40,5 +41,5 @@ def get_loans() -> dict[str, dict[str, dict[str, float] | float]]:
     keys = redis_client.scan(match="loan::*", count=100)
     data = {}
     for key in keys[1]:
-        data[str(key).split("::")[1]] = get_data(redis_client, key)
+        data[str(key, "UTF-8").split("::")[1]] = get_data(redis_client, key)
     return data
