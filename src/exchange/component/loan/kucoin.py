@@ -1,7 +1,7 @@
 """fetch kucoin loans"""
 import logging
 
-from src.exchange.component.loan.models import LoanDict, LoanDictSymbolId
+from src.exchange.models.loans import Loan, SymbolIdLoan
 from src.exchange.utils import safe_get_float, safe_timeout_method
 
 try:
@@ -10,7 +10,7 @@ except ImportError:
     import ccxt.async_support as ccxt
 
 
-def parse_loan(value: dict, update_time: float = None) -> LoanDict:
+def parse_loan(value: dict, update_time: float = None) -> Loan:
     """
     {
         "tradeId": "1231141",
@@ -25,19 +25,21 @@ def parse_loan(value: dict, update_time: float = None) -> LoanDict:
         "createdAt": "1544657947759"
     }
     """
-    return {
-        "timestamp": update_time,
-        "amount": safe_get_float(value, "principal"),
-        "asset": value.get("currency"),
-        "id": value.get("tradeId"),
-        "rate": safe_get_float(value, "dailyIntRate", 0),
-        "repaid": safe_get_float(value, "repaidSize", 0),
-        "repaid_interest": 0,
-        "unpaid_interest": safe_get_float(value, "accruedInterest", 0),
-    }
+    return Loan.parse_obj(
+        {
+            "timestamp": update_time,
+            "amount": safe_get_float(value, "principal"),
+            "asset": value.get("currency"),
+            "id": value.get("tradeId"),
+            "rate": safe_get_float(value, "dailyIntRate", 0),
+            "repaid": safe_get_float(value, "repaidSize", 0),
+            "repaid_interest": 0,
+            "unpaid_interest": safe_get_float(value, "accruedInterest", 0),
+        }
+    )
 
 
-async def fetch_kucoin_loan(client: ccxt.Exchange) -> LoanDictSymbolId:
+async def fetch_kucoin_loan(client: ccxt.Exchange) -> SymbolIdLoan:
     """update loan"""
     logging.info("fetching loan for %s", client.options["name"])
     loan: dict = await safe_timeout_method(
@@ -47,7 +49,7 @@ async def fetch_kucoin_loan(client: ccxt.Exchange) -> LoanDictSymbolId:
     if not loan and not loan.get("data", {}).get("items"):
         return []
     loans: list[dict] = loan.get("data", {}).get("items")
-    loans_by_symbol_by_id: LoanDictSymbolId = {}
+    loans_by_symbol_by_id: SymbolIdLoan = {}
     for loan in loans:
         loan_dict = parse_loan(loan, client.milliseconds())
         symbol = loan_dict["asset"]
