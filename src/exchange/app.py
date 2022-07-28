@@ -1,12 +1,10 @@
 """get data from database with flask"""
-import time
-
 from fastapi import APIRouter
 
 from src.exchange.database import get_data, get_key, get_redis
 from src.exchange.models.loans import NameSymbolIdLoan, SymbolIdLoan
 
-from .models.balance import Balance, Balances, BalancesList
+from .models.balance import Balance
 
 app = APIRouter(prefix="/exchange", tags=["exchange"])
 
@@ -33,25 +31,17 @@ def get_balance(account_name: str) -> Balance:
     return Balance.parse_obj(data)
 
 
-@app.get("/balances", response_model=BalancesList)
-def get_balances() -> BalancesList:
+@app.get("/balances", response_model=dict[str, Balance])
+def get_balances() -> dict[str, Balance]:
     """get all balance"""
     redis_client = get_redis()
     keys = redis_client.scan(match="balance::*", count=100)
-    balances = []
+    balances = {}
     for key in keys[1]:
         data = get_data(redis_client, key)
         data = parse_balance(data)
-        balances.append(
-            Balances(
-                account_name=str(key, "utf-8").split("::")[1],
-                balance=Balance.parse_obj(data),
-            )
-        )
-    return BalancesList(
-        balances=balances,
-        timestamp=int(time.time()),
-    )
+        balances[str(key, "utf-8").split("::")[1]] = Balance.parse_obj(data)
+    return balances
 
 
 @app.get("/loan/{account_name}", response_model=SymbolIdLoan)

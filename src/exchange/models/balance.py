@@ -1,5 +1,5 @@
 """balance model"""
-from sqlmodel import Field, SQLModel
+from sqlmodel import SQLModel
 
 
 class Balance(SQLModel):
@@ -8,18 +8,4 @@ class Balance(SQLModel):
     free: dict[str, float | None]
     used: dict[str, float | None]
     total: dict[str, float | None]
-    timestamp: int
-
-
-class Balances(SQLModel, table=True):
-    """balances model"""
-
-    account_name: str = Field(primary_key=True)
-    balance: Balance
-
-
-class BalancesList(SQLModel):
-    """balances list model"""
-
-    balances: list[Balances]
     timestamp: int
