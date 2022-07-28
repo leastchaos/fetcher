@@ -16,4 +16,10 @@ class Balances(SQLModel, table=True):
 
     account_name: str = Field(primary_key=True)
     balance: Balance
+
+
+class BalancesList(SQLModel):
+    """balances list model"""
+
+    balances: list[Balances]
     timestamp: int

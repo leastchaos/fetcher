@@ -5,7 +5,7 @@ from fastapi import APIRouter
 
 from src.exchange.database import get_data, get_key, get_redis
 
-from .models.balance_model import Balance, Balances
+from .models.balance import Balance, Balances, BalancesList
 
 app = APIRouter(prefix="/exchange", tags=["exchange"])
 
@@ -32,8 +32,8 @@ def get_balance(account_name: str) -> Balance:
     return Balance.parse_obj(data)
 
 
-@app.get("/balances", response_model=list[Balances])
-def get_balances() -> dict[str, dict[str, dict[str, float] | float]]:
+@app.get("/balances", response_model=BalancesList)
+def get_balances() -> BalancesList:
     """get all balance"""
     redis_client = get_redis()
     keys = redis_client.scan(match="balance::*", count=100)
@@ -45,10 +45,12 @@ def get_balances() -> dict[str, dict[str, dict[str, float] | float]]:
             Balances(
                 account_name=str(key, "utf-8").split("::")[1],
                 balance=Balance.parse_obj(data),
-                timestamp=time.time(),
             )
         )
-    return balances
+    return BalancesList(
+        balances=balances,
+        timestamp=int(time.time()),
+    )
 
 
 @app.get("/loan/{account_name}")
