@@ -48,3 +48,21 @@ def get_loans() -> NameSymbolIdLoan:
     keys = redis_client.scan(match="loan::*", count=100)
     account_names = [str(key, "utf-8").split("::")[1] for key in keys[1]]
     return {account_name: get_loan(account_name) for account_name in account_names}
+
+
+@app.get("/tickers")
+def get_tickers() -> dict[str, dict]:
+    """get all tickers"""
+    redis_client = get_redis()
+    keys = redis_client.scan(match="tickers::*", count=100)
+    return {
+        str(key, "utf-8").split("::")[1]: get_data(redis_client, key) for key in keys[1]
+    }
+
+
+@app.get("/ticker/{account_name}/{symbol}")
+def get_ticker(account_name: str, symbol: str) -> dict:
+    """get ticker"""
+    redis_client = get_redis()
+    key = get_key("tickers", account_name)
+    return get_data(redis_client, key)[symbol]
