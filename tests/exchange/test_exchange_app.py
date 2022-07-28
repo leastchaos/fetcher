@@ -14,8 +14,6 @@ def load_yml(file_name) -> dict[str, dict[str, float | str]]:
         return yaml.safe_load(f)
 
 
-# get grandparent file directory credentials.yml
-
 cred_path = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
     "src/exchange/credentials/credentials.yml",

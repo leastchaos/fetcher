@@ -16,6 +16,7 @@ start_fetcher_redis:
 start_app:
 	echo "starting app"
 	uvicorn src.app:app --reload 
+
 start_exchange_app:
 	echo "starting app server"
 	uvicorn src.exchange.app:app --reload

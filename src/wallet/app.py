@@ -72,7 +72,6 @@ def get_wallet_balances() -> dict[str, dict[str, Any]]:
     """main function"""
     config = get_config()
     chains = get_chains()
-    api_key = config["api_key"]
     accounts: dict = config["accounts"]
     balances: dict = {}
     for account_name, data in accounts.items():
@@ -80,10 +79,9 @@ def get_wallet_balances() -> dict[str, dict[str, Any]]:
         address, chain_names = data["address"], data["chain_names"]
         for name in chain_names:
             chain_id = chains[name]
-            balances[account_name][name] = get_wallet_balance(
-                chain_id, address, api_key
-            )
+            balances[account_name][name] = get_wallet_balance(chain_id, address)
             time.sleep(0.2)
+    return balances
 
 
 class WalletInfo(BaseModel):
