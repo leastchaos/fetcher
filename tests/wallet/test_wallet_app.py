@@ -29,7 +29,7 @@ def test_get_wallet_balance():
     response = client.get(f"/wallet/balance/{test_wallet['address']}/1")
     assert response.status_code == 200
     data = response.json()
-    assert data["data"]
+    assert data
 
 
 def test_get_wallet_chain_balance():

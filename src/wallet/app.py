@@ -50,7 +50,7 @@ def get_wallet_balance(chain_id: str, address: str):
     if response.status_code != 200:
         logging.error("requests: %s failed: %s", response.url, response)
         return None
-    return response.json()
+    return response.json()["data"]
 
 
 @app.get("/chain_balance/{account_name}")

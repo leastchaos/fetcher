@@ -1,13 +1,14 @@
 """get data from database with flask"""
-from itertools import product
+from itertools import chain
+from statistics import median
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from src.exchange.database import get_data, get_key, get_redis
-from src.exchange.models.loans import Loan, NameSymbolIdLoan, SymbolIdLoan
+from src.exchange.models.loans import IdLoan, Loan, NameSymbolIdLoan, SymbolIdLoan
 from src.exchange.models.ticker import Ticker
 
-from .models.balance import Balance, BalanceTicker
+from .models.balance import AccountInfo, Balance
 
 app = APIRouter(prefix="/exchange", tags=["exchange"])
 
@@ -54,10 +55,12 @@ def get_loans() -> NameSymbolIdLoan:
 
 
 @app.get("/tickers")
-def get_tickers() -> dict[str, Ticker]:
+def get_tickers(exchange: str = None) -> dict[str, Ticker]:
     """get all tickers"""
     redis_client = get_redis()
     keys = redis_client.scan(match="tickers::*", count=100)
+    if exchange:
+        keys = [0, [bytes(f"tickers::{exchange}", "utf8")]]
     results = {}
     for key in keys[1]:
         data: dict[str, dict[str, float | str]] = get_data(redis_client, key)
@@ -68,37 +71,67 @@ def get_tickers() -> dict[str, Ticker]:
     return results
 
 
-@app.get("/ticker/{exchange_name}/{symbol}", response_model=Ticker)
-def get_ticker(exchange_name: str, symbol: str) -> Ticker:
+@app.get("/ticker/{account_name}/{symbol}", response_model=Ticker)
+def get_ticker(account_name: str, symbol: str) -> Ticker:
     """get ticker"""
     redis_client = get_redis()
-    key = get_key("tickers", exchange_name)
+    key = get_key("tickers", account_name)
     symbol = symbol.replace("_", "/")
     return Ticker.parse_obj(get_data(redis_client, key)[symbol])
 
 
-@app.get("/balance_tickers", response_model=dict[str, BalanceTicker])
-def get_balance_tickers(
-    quotes: list[str] = ["USD", "USDT", "BUSD", "USDC"]
-) -> dict[str, BalanceTicker]:
+def get_ticker_price(ticker: Ticker) -> float:
+    """get ticker price"""
+    return ticker.last or ticker.close or ticker.bid or ticker.ask or 0
+
+
+def get_avg_price(tickers: dict[str, Ticker], base: str, quotes: list[str]) -> float:
+    """get average price"""
+    if base in quotes:
+        return 1
+    symbols = [f"{base}/{quote}" for quote in quotes] + [
+        f"{base}/{quote}:{quote}" for quote in quotes
+    ]
+    prices = [
+        get_ticker_price(tickers[symbol]) for symbol in symbols if symbol in tickers
+    ]
+    if not prices:
+        return 0
+    return median(prices)
+
+
+def get_loan_amount(loans: IdLoan) -> float:
+    """get loan amount"""
+
+    def get_amount(loan: Loan) -> float:
+        amount = loan.amount or 0
+        repaid = loan.repaid or 0
+        repaid_interest = loan.repaid_interest or 0
+        unpaid_interest = loan.unpaid_interest or 0
+        return amount - repaid - repaid_interest + unpaid_interest
+
+    return sum(get_amount(loan) for loan in loans.values())
+
+
+@app.get("/account_infos", response_model=dict[str, AccountInfo])
+def get_account_infos(
+    quotes: list[str] = Query(default=["USD", "USDT", "BUSD", "USDC"])
+) -> dict[str, AccountInfo]:
     """get balance and tickers"""
     redis_client = get_redis()
     keys = redis_client.scan(match="balance::*", count=100)
-    client_to_exchange = get_data(
-        redis_client, get_key("client_to_exchange", "mapping")
-    )
     tickers = get_tickers()
+    loans = get_loans()
     balances = {}
     for key in keys[1]:
         data = get_data(redis_client, key)
         account_name = str(key, "utf-8").split("::")[1]
-        exchange = client_to_exchange[account_name]
-        data["price"] = {}
-        for base, quote in product(data["total"], quotes):
-            symbol = f"{base}/{quote}"
-            if base not in data["price"]:
-                data["price"][base] = {}
-            if symbol in tickers[exchange]:
-                data["price"][base][quote] = tickers[exchange][symbol]
-        balances[account_name] = BalanceTicker.parse_obj(data)
+        loan = loans.get(account_name, {})
+        ticker = tickers.get(account_name, {})
+        data["price"] = {
+            base: get_avg_price(ticker, base, quotes)
+            for base in chain(data["total"], loan)
+        }
+        data["loan"] = {base: get_loan_amount(loan.get(base, {})) for base in loan}
+        balances[account_name] = AccountInfo.parse_obj(data)
     return balances

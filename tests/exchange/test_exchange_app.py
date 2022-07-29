@@ -5,6 +5,8 @@ import yaml
 from fastapi.testclient import TestClient
 
 from src.exchange.app import app
+from src.exchange.models.balance import AccountInfo, Balance
+from src.exchange.models.ticker import Ticker
 
 client = TestClient(app)
 
@@ -45,7 +47,7 @@ def test_get_balance():
     for account_name in credentials:
         response = client.get(f"/exchange/balance/{account_name}")
         assert response.status_code == 200
-        assert response.json()["timestamp"] is not None
+        assert Balance(**response.json())
 
 
 def test_get_loan():
@@ -61,16 +63,16 @@ def test_get_tickers():
 
 
 def test_get_ticker():
-    response = client.get("/exchange/ticker/binance/BTC_USDT")
+    response = client.get("/exchange/ticker/kucoin_main_spot/BTC_USDT")
     assert response.status_code == 200
-    assert response.json()["timestamp"] is not None
+    assert Ticker(**response.json())
 
 
-def test_get_balance_tickers():
-    response = client.get("/exchange/balance_tickers")
+def test_get_account_infos():
+    response = client.get("/exchange/account_infos")
     assert response.status_code == 200
     response_json = response.json()
     account_names = list(credentials.keys())
     assert set(response_json.keys()) == set(account_names)
-    for account_name in account_names:
-        assert response_json[account_name]["price"] is not None
+    for account_name, data in response_json.items():
+        assert AccountInfo(**data)

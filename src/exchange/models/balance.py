@@ -1,11 +1,11 @@
 """balance model"""
 from sqlmodel import SQLModel
 
-from src.exchange.models.ticker import Ticker
-
 
 class Balance(SQLModel):
-    """balance model"""
+    """
+    free, used, total: return dictionary of {asset: amount}
+    """
 
     free: dict[str, float | None]
     used: dict[str, float | None]
@@ -13,7 +13,11 @@ class Balance(SQLModel):
     timestamp: int
 
 
-class BalanceTicker(Balance):
-    """balance model with ticker"""
+class AccountInfo(Balance):
+    """
+    price: return dictionary of {asset: {quote: ticker}}
+    loan: return dictionary of {asset: {id: loan}}
+    """
 
-    price: dict[str, dict[str, Ticker]]
+    price: dict[str, float]
+    loan: dict[str, float]

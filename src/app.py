@@ -1,5 +1,6 @@
 """main application"""
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 from .exchange.app import app as exchange_app
 from .wallet.app import app as wallet_app
@@ -18,4 +19,4 @@ except ImportError:
 @app.get("/")
 def get_root():
     """get root"""
-    return {"message": "Hello World"}
+    return RedirectResponse("/docs")

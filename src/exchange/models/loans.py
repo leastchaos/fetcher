@@ -1,4 +1,6 @@
 """loan model"""
+from typing import TypedDict
+
 from sqlmodel import SQLModel
 
 
@@ -15,8 +17,22 @@ class Loan(SQLModel):
     unpaid_interest: float | None
 
 
-Symbol = str
+class LoanDict(TypedDict):
+    """loan dict"""
+
+    timestamp: int
+    amount: float | None
+    asset: str
+    id: str
+    rate: float | None
+    repaid: float | None
+    repaid_interest: float | None
+    unpaid_interest: float | None
+
+
+Asset = str
 Id = str
 Name = str
-SymbolIdLoan = dict[Symbol, dict[Id, Loan]]
-NameSymbolIdLoan = dict[Name, dict[Symbol, dict[Id, Loan]]]
+IdLoan = dict[Id, Loan]
+SymbolIdLoan = dict[Asset, dict[Id, Loan]]
+NameSymbolIdLoan = dict[Name, dict[Asset, dict[Id, Loan]]]
