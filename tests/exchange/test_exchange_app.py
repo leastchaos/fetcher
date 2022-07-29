@@ -52,3 +52,25 @@ def test_get_loan():
     for account_name in credentials:
         response = client.get(f"/exchange/loan/{account_name}")
         assert response.status_code == 200
+
+
+def test_get_tickers():
+    response = client.get("/exchange/tickers")
+    assert response.status_code == 200
+    assert len(response.json()) > 0
+
+
+def test_get_ticker():
+    response = client.get("/exchange/ticker/binance/BTC_USDT")
+    assert response.status_code == 200
+    assert response.json()["timestamp"] is not None
+
+
+def test_get_balance_tickers():
+    response = client.get("/exchange/balance_tickers")
+    assert response.status_code == 200
+    response_json = response.json()
+    account_names = list(credentials.keys())
+    assert set(response_json.keys()) == set(account_names)
+    for account_name in account_names:
+        assert response_json[account_name]["price"] is not None
