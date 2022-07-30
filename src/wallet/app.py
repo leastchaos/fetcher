@@ -1,9 +1,10 @@
 """fetch wallet data from ethplorer"""
+import asyncio
 import os
 import time
 from typing import Any
 
-import requests
+import aiohttp
 import yaml
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -23,56 +24,59 @@ def get_config() -> dict[str, Any]:
 API_KEY = get_config()["api_key"]
 
 
-def request(url: str, params: dict = None) -> dict:
+async def request(url: str, params: dict = None) -> dict:
     """request data from covalenthq"""
     if params is None:
         params = {}
     params.update({"key": API_KEY})
-    response = requests.get(url, params=params)
-    if response.status_code == 200:
-        return response.json()
-    raise (Exception(f"Error: {response.status_code}: url: {url}"))
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as response:
+            if response.status == 200:
+                return await response.json()
+    raise (Exception(f"Error: {response.status}: url: {url}"))
 
 
 @app.get("/chains")
-def get_chains():
+async def get_chains():
     """returns the chains available on cavalenthq"""
     url = f"{BASE_URL}chains/"
     params = {
         "quote-currency": "USD",
         "format": "JSON",
     }
-    response = request(url, params=params)
+    response = await request(url, params=params)
     return {data["label"]: data["chain_id"] for data in response["data"]["items"]}
 
 
 @app.get("/balance/{address}/{chain_id}")
-def get_wallet_balance(chain_id: str, address: str):
+async def get_wallet_balance(chain_id: str, address: str):
     """returns the data for the address"""
     url = f"{BASE_URL}{chain_id}/address/{address}/balances_v2/"
-    response = request(url)
+    response = await request(url)
     return response["data"]
 
 
 @app.get("/chain_balance/{account_name}")
-def get_wallet_chain_balance(account_name: str) -> dict[str, Any]:
+async def get_wallet_chain_balance(account_name: str) -> dict[str, Any]:
     """returns the data for the address"""
     config = get_config()
     data = config["accounts"][account_name]
     address, chain_names = data["address"], data["chain_names"]
-    chains = get_chains()
+    chains = await get_chains()
     chain_ids = [chains[chain_name] for chain_name in chain_names]
+    wallet_balances = await asyncio.gather(
+        *[get_wallet_balance(chain_id, address) for chain_id in chain_ids]
+    )
     return {
-        chain_name: get_wallet_balance(chain_id, address)
-        for chain_name, chain_id in zip(chain_names, chain_ids)
+        chain_name: wallet for chain_name, wallet in zip(chain_names, wallet_balances)
     }
 
 
 @app.get("/balances")
-def get_wallet_balances() -> dict[str, dict[str, Any]]:
+async def get_wallet_balances() -> dict[str, dict[str, Any]]:
     """main function"""
     config = get_config()
-    chains = get_chains()
+    chains = await get_chains()
     accounts: dict = config["accounts"]
     balances: dict = {}
     for account_name, data in accounts.items():
@@ -80,7 +84,7 @@ def get_wallet_balances() -> dict[str, dict[str, Any]]:
         address, chain_names = data["address"], data["chain_names"]
         for name in chain_names:
             chain_id = chains[name]
-            balances[account_name][name] = get_wallet_balance(chain_id, address)
+            balances[account_name][name] = await get_wallet_balance(chain_id, address)
             time.sleep(0.2)
     return balances
 
