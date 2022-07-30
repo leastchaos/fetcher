@@ -77,6 +77,9 @@ async def watch_balance_loop(client: ccxt.Exchange, db: redis.Redis) -> None:
             err_count += 1
             if err_count > 10:
                 logging.error(f"{name} balance watch failed")
+                balance = await safe_timeout_method(
+                    client.fetch_balance, fail_result=balance, log_str=log_str
+                )
                 await client.close()
                 err_count = 0
             await asyncio.sleep(1)
