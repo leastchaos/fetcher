@@ -1,5 +1,4 @@
 """fetch wallet data from ethplorer"""
-import logging
 import os
 import time
 from typing import Any
@@ -24,6 +23,17 @@ def get_config() -> dict[str, Any]:
 API_KEY = get_config()["api_key"]
 
 
+def request(url: str, params: dict = None) -> dict:
+    """request data from covalenthq"""
+    if params is None:
+        params = {}
+    params.update({"key": API_KEY})
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        return response.json()
+    raise (Exception(f"Error: {response.status_code}: url: {url}"))
+
+
 @app.get("/chains")
 def get_chains():
     """returns the chains available on cavalenthq"""
@@ -31,13 +41,8 @@ def get_chains():
     params = {
         "quote-currency": "USD",
         "format": "JSON",
-        "key": API_KEY,
     }
-    try:
-        response = requests.get(url, params).json()
-    except requests.exceptions.RequestException as err:
-        logging.error(err)
-        return None
+    response = request(url, params=params)
     return {data["label"]: data["chain_id"] for data in response["data"]["items"]}
 
 
@@ -45,12 +50,8 @@ def get_chains():
 def get_wallet_balance(chain_id: str, address: str):
     """returns the data for the address"""
     url = f"{BASE_URL}{chain_id}/address/{address}/balances_v2/"
-    params = {"key": API_KEY}
-    response = requests.get(url, params=params)
-    if response.status_code != 200:
-        logging.error("requests: %s failed: %s", response.url, response)
-        return None
-    return response.json()["data"]
+    response = request(url)
+    return response["data"]
 
 
 @app.get("/chain_balance/{account_name}")
@@ -92,27 +93,27 @@ class WalletInfo(BaseModel):
     chain_names: list[str]
 
 
-@app.post("/credential/")
-def add_credentials(info: WalletInfo) -> dict:
-    """add credentials to the config"""
-    config = get_config()
-    config["accounts"][info.account_name] = {
-        "address": info.address,
-        "chain_names": info.chain_names,
-    }
-    with open(CREDENTIALS, "w", encoding="utf-8") as config_file:
-        yaml.dump(config, config_file, default_flow_style=False)
-    return config["accounts"][info.account_name]
+# @app.post("/credential/")
+# def add_credentials(info: WalletInfo) -> dict:
+#     """add credentials to the config"""
+#     config = get_config()
+#     config["accounts"][info.account_name] = {
+#         "address": info.address,
+#         "chain_names": info.chain_names,
+#     }
+#     with open(CREDENTIALS, "w", encoding="utf-8") as config_file:
+#         yaml.dump(config, config_file, default_flow_style=False)
+#     return config["accounts"][info.account_name]
 
 
-@app.delete("/credential/{account_name}")
-def delete_credentials(account_name: str) -> dict:
-    """delete credentials from the config"""
-    config = get_config()
-    del config["accounts"][account_name]
-    with open(CREDENTIALS, "w", encoding="utf-8") as config_file:
-        yaml.dump(config, config_file, default_flow_style=False)
-    return config["accounts"][account_name]
+# @app.delete("/credential/{account_name}")
+# def delete_credentials(account_name: str) -> dict:
+#     """delete credentials from the config"""
+#     config = get_config()
+#     del config["accounts"][account_name]
+#     with open(CREDENTIALS, "w", encoding="utf-8") as config_file:
+#         yaml.dump(config, config_file, default_flow_style=False)
+#     return config["accounts"][account_name]
 
 
 if __name__ == "__main__":
