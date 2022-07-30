@@ -106,9 +106,8 @@ def get_loan_amount(loans: IdLoan) -> float:
     def get_amount(loan: Loan) -> float:
         amount = loan.amount or 0
         repaid = loan.repaid or 0
-        repaid_interest = loan.repaid_interest or 0
         unpaid_interest = loan.unpaid_interest or 0
-        return amount - repaid - repaid_interest + unpaid_interest
+        return amount - repaid + unpaid_interest
 
     return sum(get_amount(loan) for loan in loans.values())
 

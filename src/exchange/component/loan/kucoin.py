@@ -37,7 +37,7 @@ def parse_loan(value: dict, update_time: float = None) -> dict:
     }
 
 
-async def fetch_kucoin_loan(client: ccxt.Exchange) -> SymbolIdLoan:
+async def fetch_kucoin_loan(client: ccxt.kucoin) -> SymbolIdLoan:
     """update loan"""
     logging.info("fetching loan for %s", client.options["name"])
     loan: dict = await safe_timeout_method(
