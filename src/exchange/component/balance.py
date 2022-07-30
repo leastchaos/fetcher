@@ -63,19 +63,26 @@ async def watch_balance_loop(client: ccxt.Exchange, db: redis.Redis) -> None:
     log_str = f"{name} watch balance"
     logging.info(f"watching balance for {name}")
     err_count = 0
+    try:
+        balance = await client.fetch_balance()
+    except Exception as e:
+        logging.error("%s failed to fetch balance retrying: %s", name, e)
+        await asyncio.sleep(1)
+        return await watch_balance_loop(client, db)
     while True:
-        balance = await safe_timeout_method(
+        update = await safe_timeout_method(
             client.watch_balance, fail_func=client.fetch_balance, log_str=log_str
         )
         if not balance:
             err_count += 1
-            if err_count > 5:
+            if err_count > 10:
                 logging.error(f"{name} balance watch failed")
                 await client.close()
                 err_count = 0
             await asyncio.sleep(1)
             continue
+        balance = client.deep_extend(balance, update)
         balance["timestamp"] = client.milliseconds()
-        balance = parse_balance(balance)
-        push_data(db, "balance", name, balance)
+        push_balance = parse_balance(balance)
+        push_data(db, "balance", name, push_balance)
         err_count = 0
