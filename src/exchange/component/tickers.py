@@ -1,5 +1,6 @@
 """fetch tickers"""
 import asyncio
+import logging
 
 import ccxt.async_support as ccxt
 import redis
@@ -10,13 +11,17 @@ from src.exchange.utils import push_data, safe_timeout_method
 async def fetch_tickers_loop(client: ccxt.Exchange, db: redis.Redis) -> None:
     """fetch loans"""
     name = client.options["name"]
+    log_str = f"{name} fetch tickers"
+    logging.info(f"fetching tickers for {name}")
     while True:
-        data = await safe_timeout_method(client.fetch_tickers)
+        data = await safe_timeout_method(client.fetch_tickers, log_str=log_str)
         timestamp = client.milliseconds()
+        if not data:
+            await asyncio.sleep(60)
+            continue
         for key, value in data.items():
             value["timestamp"] = timestamp
-        if data:
-            push_data(db, "tickers", name, data)
+        push_data(db, "tickers", name, data)
         await asyncio.sleep(60)
 
 

@@ -49,23 +49,31 @@ def setup_logging(
 async def safe_timeout_method(
     func: Callable[..., Awaitable[Any]],
     *args: Any,
-    timeout: float = 10,
+    timeout: float = 30,
     fail_func: Callable[..., Awaitable[Any]] | None = None,
     fail_result: Any = None,
-    fail_timeout: float = 10,
+    fail_timeout: float = 30,
+    log_str: str = None
 ) -> Any:
     """try calling the method, if failed return fail result"""
     try:
         async with async_timeout.timeout(timeout):
-            return await func(*args)
+            result = await func(*args)
+            return result
     except (ccxt.errors.NetworkError, asyncio.TimeoutError) as err:
-        logging.getLogger(func.__name__).error(
-            "%s(%s) failed: %s", func.__name__, args, err
+        logging.getLogger(log_str).error(
+            "%s(%s) failed: %s", func.__name__, args, err.__class__.__name__
         )
     if not fail_func:
+        logging.getLogger(log_str).info(
+            "%s(%s) failed, no fail func, returning fail result: %s",
+            func.__name__,
+            args,
+            fail_result,
+        )
         return fail_result
     return await safe_timeout_method(
-        fail_func, *args, fail_result=fail_result, timeout=fail_timeout
+        fail_func, *args, fail_result=fail_result, timeout=fail_timeout, log_str=log_str
     )
 
 

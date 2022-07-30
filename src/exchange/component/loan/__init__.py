@@ -28,7 +28,6 @@ def get_loan_method(
     margin_mode = client.options.get("defaultMarginMode")
     key = (exchange_name, market_type, margin_mode)
     method = loan_methods.get(key)
-    logging.info("%s loan method: %s", key, method)
     return method
 
 
@@ -38,8 +37,10 @@ async def fetch_loans_loop(client: ccxt.Exchange, db: redis.Redis) -> None:
     if method is None:
         return
     name = client.options["name"]
+    log_str = f"{name} fetch loans"
+    logging.info(f"fetching loans for {name}")
     while True:
-        loans = await safe_timeout_method(method, client)
+        loans = await safe_timeout_method(method, client, log_str=log_str)
         if loans:
             push_data(db, "loan", name, loans)
         await asyncio.sleep(60)

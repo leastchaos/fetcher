@@ -1,5 +1,6 @@
 """collect data from exchange and store in database"""
 import asyncio
+import logging
 from typing import Any
 
 import redis
@@ -45,8 +46,10 @@ def start_balance_loop(
 async def fetch_balance_loop(client: ccxt.Exchange, db: redis.Redis) -> None:
     """collect data from exchange and store in database"""
     name = client.options["name"]
+    log_str = f"{name} fetch balance"
+    logging.info(f"fetching balance for {name}")
     while True:
-        balance = await safe_timeout_method(client.fetch_balance)
+        balance = await safe_timeout_method(client.fetch_balance, log_str=log_str)
         if balance:
             balance["timestamp"] = client.milliseconds()
             balance = parse_balance(balance)
@@ -57,11 +60,22 @@ async def fetch_balance_loop(client: ccxt.Exchange, db: redis.Redis) -> None:
 async def watch_balance_loop(client: ccxt.Exchange, db: redis.Redis) -> None:
     """collect data from exchange and store in database"""
     name = client.options["name"]
+    log_str = f"{name} watch balance"
+    logging.info(f"watching balance for {name}")
+    err_count = 0
     while True:
         balance = await safe_timeout_method(
-            client.watch_balance, fail_func=client.fetch_balance
+            client.watch_balance, fail_func=client.fetch_balance, log_str=log_str
         )
-        if balance:
-            balance["timestamp"] = client.milliseconds()
-            balance = parse_balance(balance)
-            push_data(db, "balance", name, balance)
+        if not balance:
+            err_count += 1
+            if err_count > 5:
+                logging.error(f"{name} balance watch failed")
+                await client.close()
+                err_count = 0
+            await asyncio.sleep(1)
+            continue
+        balance["timestamp"] = client.milliseconds()
+        balance = parse_balance(balance)
+        push_data(db, "balance", name, balance)
+        err_count = 0
