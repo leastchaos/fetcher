@@ -4,13 +4,14 @@ from statistics import median
 
 from fastapi import APIRouter, Query
 
+from src.exchange.app.open_orders import app as open_orders_app
 from src.exchange.database import get_data, get_key, get_redis
+from src.exchange.models.balance import AccountInfo, Balance
 from src.exchange.models.loans import IdLoan, Loan, NameSymbolIdLoan, SymbolIdLoan
 from src.exchange.models.ticker import Ticker
 
-from .models.balance import AccountInfo, Balance
-
 app = APIRouter(prefix="/exchange", tags=["exchange"])
+app.include_router(open_orders_app)
 
 
 @app.get("/balance/{account_name}", response_model=Balance)
