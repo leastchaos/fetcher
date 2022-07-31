@@ -36,6 +36,7 @@ def get_client(account: AccountInfo, name: str = None) -> ccxt.Exchange:
     account.options["defaultType"] = account.default_type
     account.options["defaultMarginMode"] = account.default_margin_mode
     account.options["name"] = name if name else account.exchange_name
+    account.options["warnOnFetchOpenOrdersWithoutSymbol"] = False
     return getattr(ccxt, account.exchange_name)(
         {
             "apiKey": account.api_key,
@@ -43,6 +44,7 @@ def get_client(account: AccountInfo, name: str = None) -> ccxt.Exchange:
             "password": account.password,
             "uid": account.uid,
             "options": account.options,
+            "newUpdates": True,
         }
     )
 

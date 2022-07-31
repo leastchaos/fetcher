@@ -2,7 +2,8 @@ pre-commit
 black
 flake8
 pydantic
-ccxt
+# ccxt
+git+https://github.com/leastchaos/ccxt.git#subdirectory=python
 pytest
 pytest-asyncio
 ujson

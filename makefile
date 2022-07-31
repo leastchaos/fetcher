@@ -29,3 +29,6 @@ start_exchange_server:
 start_wallet_app:
 	echo "starting wallet app"
 	uvicorn src.wallet.app:app --reload
+
+update_ccxt:
+	pip install -U git+https://github.com/leastchaos/ccxt.git#subdirectory=python
