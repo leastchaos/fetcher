@@ -5,6 +5,7 @@ import logging
 from src.exchange.component.balance import start_balance_loop
 from src.exchange.component.client import get_clients
 from src.exchange.component.loan import start_loans_loop
+from src.exchange.component.open_orders import start_open_orders_loop
 from src.exchange.component.tickers import start_tickers_loop
 from src.exchange.database import get_redis
 from src.exchange.utils import setup_logging
@@ -15,12 +16,13 @@ async def main():
     setup_logging()
     redis_client = get_redis()
     clients = get_clients()
-    tasks = []
-    tasks.extend(start_balance_loop(clients, redis_client))
-    tasks.extend(start_loans_loop(clients, redis_client))
-    tasks.extend(start_tickers_loop(clients, redis_client))
     try:
-        await asyncio.gather(*tasks)
+        await asyncio.gather(
+            *start_balance_loop(clients, redis_client),
+            *start_loans_loop(clients, redis_client),
+            *start_tickers_loop(clients, redis_client),
+            *start_open_orders_loop(clients, redis_client),
+        )
     except (asyncio.CancelledError, KeyboardInterrupt):
         logging.info("shutting down")
     finally:
