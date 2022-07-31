@@ -32,3 +32,16 @@ start_wallet_app:
 
 update_ccxt:
 	pip install -U git+https://github.com/leastchaos/ccxt.git#subdirectory=python
+
+start:
+	tmux new-session -s fetcher -d
+	tmux send-keys -t fetcher "tmux set -g mouse on" C-m
+	tmux send-keys -t fetcher "conda activate $(ENV)" C-m
+	tmux send-keys -t fetcher "make start_fetcher_redis" C-m
+	tmux split-window -v
+	tmux send-keys -t fetcher "conda activate $(ENV)" C-m
+	tmux send-keys -t fetcher "make start_exchange_server" C-m
+	tmux split-window -v
+	tmux send-keys -t fetcher "conda activate $(ENV)" C-m
+	tmux send-keys -t fetcher "make start_app" C-m
+	tmux attach -t bot
