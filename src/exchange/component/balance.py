@@ -62,7 +62,6 @@ async def fetch_gateio_isolated_balance_loop(
     while True:
         balances = await safe_timeout_method(client.fetch_balance, log_str=log_str)
         balances.pop("info", None)
-        print(balances)
         for market, balance in balances.items():
             market_name = f"{name}-{market}"
             balance["timestamp"] = client.milliseconds()
