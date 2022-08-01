@@ -8,6 +8,7 @@ from src.exchange.app.open_orders import app as open_orders_app
 from src.exchange.database import get_data, get_key, get_redis
 from src.exchange.models.balance import AccountInfo, Balance
 from src.exchange.models.loans import IdLoan, Loan, NameSymbolIdLoan, SymbolIdLoan
+from src.exchange.models.positions import Position
 from src.exchange.models.ticker import Ticker
 
 app = APIRouter(prefix="/exchange", tags=["exchange"])
@@ -135,3 +136,16 @@ def get_account_infos(
         data["loan"] = {base: get_loan_amount(loan.get(base, {})) for base in loan}
         balances[account_name] = AccountInfo.parse_obj(data)
     return balances
+
+
+@app.get("/positions", response_model=dict[str, dict[str, list[Position]]])
+def get_positions() -> dict[str, dict[str, list[Position]]]:
+    """get all positions"""
+    redis_client = get_redis()
+    keys = redis_client.scan(match="positions::*", count=100)
+    positions = {}
+    for key in keys[1]:
+        data = get_data(redis_client, key)
+        account_name = str(key, "utf-8").split("::")[1]
+        positions[account_name] = data
+    return positions
