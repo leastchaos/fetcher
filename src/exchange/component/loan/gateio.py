@@ -82,29 +82,20 @@ async def fetch_gateio_cross_loan(client: ccxt.gateio) -> SymbolIdLoan:
 
 async def fetch_gateio_isolated_loan(client: ccxt.gateio) -> SymbolIdLoan:
     """watch ccxt loans and update self._loans"""
-    if not hasattr(fetch_gateio_cross_loan, "loan_details"):
-        fetch_gateio_cross_loan.loan_details = {}
-    loans: list[dict] = await client.private_margin_get_cross_loans(
-        params={"status": 2}
+    if not hasattr(fetch_gateio_isolated_loan, "loan_details"):
+        fetch_gateio_isolated_loan.loan_details = {}
+    loans: list[dict] = await client.private_margin_get_loans(
+        params={"status": "loaned", "side": "borrow"}
     )
-    completed_loans: list[dict] = await client.private_margin_get_cross_loans(
-        params={"status": 3}
+    completed_loans: list[dict] = await client.private_margin_get_loans(
+        params={"status": "finished", "side": "borrow"}
     )
     loans.extend(completed_loans)
     loans_cache: SymbolIdLoan = {}
     for loan in loans:
         currency = loan["currency"]
-        if currency not in fetch_gateio_cross_loan.loan_details:
-            fetch_gateio_cross_loan.loan_details[
-                currency
-            ] = await client.public_margin_get_cross_currencies_currency(
-                params={"currency": currency}
-            )
         if currency not in loans_cache:
             loans_cache[currency] = {}
-        loan_detail = fetch_gateio_cross_loan.loan_details[currency]
-        loan.update(loan_detail)
         unified_loan = parse_loan(loan, client.milliseconds())
         loans_cache[currency][unified_loan["id"]] = unified_loan
-
     return loans_cache
