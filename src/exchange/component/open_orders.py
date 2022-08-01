@@ -21,7 +21,11 @@ OrderCache = dict[str, OrderSymbolCache]
 
 def parse_open_order(open_order: dict[str, Any]) -> OrderDict:
     """parse open orders"""
-    return Order.parse_obj(open_order).dict()
+    try:
+        return Order.parse_obj(open_order).dict()
+    except Exception as err:
+        logging.error("%s error: %s", open_order, err)
+        return {}
 
 
 def start_open_orders_loop(
@@ -60,6 +64,8 @@ async def fetch_open_orders_loop(client: ccxt.Exchange, db: redis.Redis) -> None
 def update_orders(orders: OrderCache, update: list[OrderDict]) -> OrderCache:
     """update orders"""
     for order in update:
+        if order["symbol"][-5:] == "USDTM":
+            continue
         if order["symbol"] not in orders:
             orders[order["symbol"]] = {}
         if order["status"] == "open":

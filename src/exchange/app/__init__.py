@@ -78,8 +78,12 @@ def get_ticker(account_name: str, symbol: str) -> Ticker:
     """get ticker"""
     redis_client = get_redis()
     key = get_key("tickers", account_name)
-    symbol = symbol.replace("_", "/")
-    return Ticker.parse_obj(get_data(redis_client, key)[symbol])
+    symbol = symbol.replace("_", "/").replace("%3", ":")
+    try:
+        return Ticker.parse_obj(get_data(redis_client, key)[symbol])
+    except Exception:
+        symbol = symbol.split(":")[0]
+        return Ticker.parse_obj(get_data(redis_client, key)[symbol])
 
 
 def get_ticker_price(ticker: Ticker) -> float:
