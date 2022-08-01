@@ -78,7 +78,7 @@ def get_ticker(account_name: str, symbol: str) -> Ticker:
     """get ticker"""
     redis_client = get_redis()
     key = get_key("tickers", account_name)
-    symbol = symbol.replace("_", "/").replace("%3", ":")
+    symbol = symbol.replace("_", "/").replace("%3", ":").split("-")[0]
     try:
         return Ticker.parse_obj(get_data(redis_client, key)[symbol])
     except Exception:
@@ -132,7 +132,7 @@ def get_account_infos(
         data = get_data(redis_client, key)
         account_name = str(key, "utf-8").split("::")[1]
         loan = loans.get(account_name, {})
-        ticker = tickers.get(account_name, {})
+        ticker = tickers.get(account_name.split("-")[0], {})
         data["price"] = {
             base: get_avg_price(ticker, base, quotes)
             for base in chain(data["total"], loan)

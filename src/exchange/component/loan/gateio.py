@@ -80,7 +80,7 @@ async def fetch_gateio_cross_loan(client: ccxt.gateio) -> SymbolIdLoan:
     return loans_cache
 
 
-async def fetch_gateio_isolated_loan(client: ccxt.gateio) -> SymbolIdLoan:
+async def fetch_gateio_isolated_loan(client: ccxt.gateio) -> dict[str, SymbolIdLoan]:
     """watch ccxt loans and update self._loans"""
     if not hasattr(fetch_gateio_isolated_loan, "loan_details"):
         fetch_gateio_isolated_loan.loan_details = {}
@@ -94,8 +94,11 @@ async def fetch_gateio_isolated_loan(client: ccxt.gateio) -> SymbolIdLoan:
     loans_cache: SymbolIdLoan = {}
     for loan in loans:
         currency = loan["currency"]
-        if currency not in loans_cache:
-            loans_cache[currency] = {}
+        market = loan["currency_pair"].replace("_", "/")
+        if market not in loans_cache:
+            loans_cache[market] = {}
+        if currency not in loans_cache[market]:
+            loans_cache[market][currency] = {}
         unified_loan = parse_loan(loan, client.milliseconds())
-        loans_cache[currency][unified_loan["id"]] = unified_loan
+        loans_cache[market][currency][unified_loan["id"]] = unified_loan
     return loans_cache

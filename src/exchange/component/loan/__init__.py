@@ -41,6 +41,10 @@ async def fetch_loans_loop(client: ccxt.Exchange, db: redis.Redis) -> None:
     logging.info(f"fetching loans for {name}: {method.__name__}")
     while True:
         loans = await safe_timeout_method(method, client, log_str=log_str)
+        if method == fetch_gateio_isolated_loan:
+            for market, loans_dict in loans.items():
+                push_data(db, "loan", f"{name}-{market}", loans_dict)
+            continue
         if loans:
             push_data(db, "loan", name, loans)
         await asyncio.sleep(60)

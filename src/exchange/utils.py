@@ -115,5 +115,5 @@ def push_data(
 ) -> None:
     """helper function to push data to redis"""
     key = get_key(table, name)
-    logging.info("push data to redis: %s", key)
+    logging.debug("push data to redis: %s", key)
     store_data(redis_client, key, value, expiry)
