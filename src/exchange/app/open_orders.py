@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from src.exchange.database import get_data, get_key, get_redis
 from src.exchange.models.orders import Order
 
-app = APIRouter(prefix="/open_orders", tags=["exchange"])
+app = APIRouter(prefix="/open_orders", tags=["exchange", "account_infos"])
 
 
 @app.get("/", response_model=dict[str, dict[str, dict[str, Order]]])
