@@ -131,3 +131,5 @@ dmypy.json
 dump.rdb
 */credentials.yml
 */*/credentials.yml
+test.py
+test.ipynb
