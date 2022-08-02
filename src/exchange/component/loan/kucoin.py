@@ -41,8 +41,7 @@ async def fetch_kucoin_loan(client: ccxt.kucoin) -> SymbolIdLoan:
     """update loan"""
     logging.info("fetching loan for %s", client.options["name"])
     loan: dict = await safe_timeout_method(
-        client.private_get_margin_borrow_outstanding,
-        {"pageSize": "50"},
+        client.private_get_margin_borrow_outstanding, {"pageSize": "50"}, fail_result={}
     )
     if not loan and not loan.get("data", {}).get("items"):
         return []

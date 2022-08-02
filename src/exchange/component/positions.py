@@ -37,6 +37,8 @@ async def fetch_positions_loop(client: ccxt.Exchange, db: redis.Redis) -> None:
     if not client.has.get("fetchPositions"):
         logging.info(f"{name} does not support fetchPositions")
         return
+    if client.options["defaultType"] not in ["swap", "future"]:
+        return
     try:
         await client.fetch_positions()
     except ccxt.errors.NotSupported as err:

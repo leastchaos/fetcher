@@ -64,6 +64,11 @@ async def safe_timeout_method(
         logging.getLogger(log_str).error(
             "%s(%s) failed: %s", func.__name__, args, err.__class__.__name__
         )
+    except ccxt.errors.ExchangeNotAvailable as err:
+        logging.getLogger(log_str).error(
+            "%s(%s) failed: %s", func.__name__, args, err.__class__.__name__
+        )
+        await asyncio.sleep(5)
     if not fail_func:
         logging.getLogger(log_str).info(
             "%s(%s) failed, no fail func, returning fail result: %s",

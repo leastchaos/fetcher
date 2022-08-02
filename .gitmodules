@@ -1,3 +1,6 @@
 [submodule "src/hb_app"]
 	path = src/hb_app
 	url = https://github.com/leastchaos/hb_app
+[submodule "fetcher_sdk"]
+	path = fetcher_sdk
+	url = https://github.com/leastchaos/fetcher_sdk

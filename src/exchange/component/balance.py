@@ -60,7 +60,9 @@ async def fetch_gateio_isolated_balance_loop(
     log_str = f"{name} fetch balance"
     logging.info(f"fetching balance for {name}")
     while True:
-        balances = await safe_timeout_method(client.fetch_balance, log_str=log_str)
+        balances = await safe_timeout_method(
+            client.fetch_balance, log_str=log_str, fail_result={}
+        )
         balances.pop("info", None)
         for market, balance in balances.items():
             market_name = f"{name}-{market}"
