@@ -45,3 +45,17 @@ start:
 	tmux send-keys -t fetcher "conda activate $(ENV)" C-m
 	tmux send-keys -t fetcher "make start_app" C-m
 	tmux attach -t bot
+
+update_sdk:
+	docker run --rm -v "${PWD}:/local" \
+	openapitools/openapi-generator-cli \
+	generate -i local/fetcher_sdk/openapi.yml \
+	-g python \
+	--additional-properties=packageName=fetcher \
+	-o local/fetcher_sdk
+	
+	cd fetcher_sdk
+	git add .
+	git commit -m "update sdk"
+	git push
+	cd .
