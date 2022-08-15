@@ -1,9 +1,12 @@
 """get data from database with flask"""
 from itertools import chain
 from statistics import median
+from typing import Literal
 
+import ccxt
 from fastapi import APIRouter, Query
 
+from src.exchange.component.client import get_clients
 from src.exchange.database import get_data, get_key, get_redis
 from src.exchange.models.balance import AccountInfo, Balance
 from src.exchange.models.loans import IdLoan, Loan, NameSymbolIdLoan, SymbolIdLoan
@@ -11,10 +14,12 @@ from src.exchange.models.positions import Position
 from src.exchange.models.ticker import Ticker
 
 app = APIRouter(tags=["exchange", "account_infos"])
+available_accounts = Literal[tuple(get_clients().keys())]
+available_exchanges = Literal[tuple(ccxt.exchanges)]
 
 
 @app.get("/balance/{account_name}", response_model=Balance)
-def get_balance(account_name: str) -> Balance:
+def get_balance(account_name: available_accounts) -> Balance:
     """get balance"""
     redis_client = get_redis()
     key = get_key("balance", account_name)
@@ -35,7 +40,7 @@ def get_balances() -> dict[str, Balance]:
 
 
 @app.get("/loan/{account_name}", response_model=SymbolIdLoan)
-def get_loan(account_name: str) -> SymbolIdLoan:
+def get_loan(account_name: available_accounts) -> SymbolIdLoan:
     """get loan"""
     redis_client = get_redis()
     key = get_key("loan", account_name)
@@ -55,7 +60,7 @@ def get_loans() -> NameSymbolIdLoan:
 
 
 @app.get("/tickers")
-def get_tickers(exchange: str = None) -> dict[str, Ticker]:
+def get_tickers(exchange: available_exchanges = None) -> dict[str, Ticker]:
     """get all tickers"""
     redis_client = get_redis()
     keys = redis_client.scan(match="tickers::*", count=100)
@@ -72,7 +77,7 @@ def get_tickers(exchange: str = None) -> dict[str, Ticker]:
 
 
 @app.get("/ticker/{account_name}/{symbol}", response_model=Ticker)
-def get_ticker(account_name: str, symbol: str) -> Ticker:
+def get_ticker(account_name: available_accounts, symbol: str) -> Ticker:
     """get ticker"""
     redis_client = get_redis()
     key = get_key("tickers", account_name)
@@ -94,7 +99,7 @@ def get_avg_price(tickers: dict[str, Ticker], base: str, quotes: list[str]) -> f
     if base in quotes:
         return 1
     if base == "POINT":
-        return 0
+        return 0.5
     symbols = [f"{base}/{quote}" for quote in quotes] + [
         f"{base}/{quote}:{quote}" for quote in quotes
     ]

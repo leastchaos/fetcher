@@ -33,7 +33,7 @@ async def request(url: str, params: dict = None) -> dict:
         async with session.get(url, params=params) as response:
             if response.status == 200:
                 return await response.json()
-    raise (Exception(f"Error: {response.status}: url: {url}"))
+    raise Exception(f"Error: {response.status}: url: {url} response: {response.json()}")
 
 
 @app.get("/chains")

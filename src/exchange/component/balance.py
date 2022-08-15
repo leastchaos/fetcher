@@ -36,12 +36,15 @@ def start_balance_loop(
     """collect data from exchange and store in database"""
     tasks = []
     for client in clients.values():
-        if client.id == "gateio" and client.options["defaultMarginMode"] == "isolated":
-            tasks.append(
-                asyncio.create_task(
-                    fetch_gateio_isolated_balance_loop(client, redis_db)
+        if client.id == "gateio":
+            if client.options["defaultMarginMode"] == "isolated":
+                tasks.append(
+                    asyncio.create_task(
+                        fetch_gateio_isolated_balance_loop(client, redis_db)
+                    )
                 )
-            )
+            else:
+                tasks.append(asyncio.create_task(fetch_balance_loop(client, redis_db)))
         elif client.has.get("watchBalance"):
             tasks.append(asyncio.create_task(watch_balance_loop(client, redis_db)))
         else:
