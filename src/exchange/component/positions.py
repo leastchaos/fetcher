@@ -2,12 +2,13 @@
 import asyncio
 import logging
 
+import backoff
 import ccxt.async_support as ccxt
 import redis
 
 from src.exchange.component.client import get_clients
 from src.exchange.models.positions import Position, PositionDict
-from src.exchange.utils import push_data, safe_timeout_method
+from src.exchange.utils import push_data
 
 
 def parse_positions(positions: list[PositionDict]) -> dict[str, list[PositionDict]]:
@@ -30,29 +31,36 @@ def parse_positions(positions: list[PositionDict]) -> dict[str, list[PositionDic
     return result
 
 
+@backoff.on_exception(backoff.expo, Exception, max_time=120)
+async def fetch_positions(client: ccxt.Exchange) -> list[PositionDict]:
+    """fetch position"""
+    positions = await client.fetch_positions()
+    return positions
+
+
 async def fetch_positions_loop(client: ccxt.Exchange, db: redis.Redis) -> None:
     """fetch loans"""
     name = client.options["name"]
-    log_str = f"{name} fetch positions"
     if not client.has.get("fetchPositions"):
         logging.info(f"{name} does not support fetchPositions")
         return
     if client.options["defaultType"] not in ["swap", "future"]:
         return
     try:
-        await client.fetch_positions()
+        await fetch_positions(client)
     except ccxt.errors.NotSupported as err:
         logging.info(f"{name} does not support fetchPositions: {err}")
         return
     logging.info(f"fetching positions for {name}")
     data = {}
     while True:
-        data = await safe_timeout_method(
-            client.fetch_positions, fail_result=data, log_str=log_str
-        )
+        try:
+            data = await fetch_positions(client)
+        except Exception as err:
+            logging.error(f"{name} fetch positions error: {err}")
         parsed_data = parse_positions(data)
         push_data(db, "positions", name, parsed_data)
-        await asyncio.sleep(1)
+        await asyncio.sleep(5)
 
 
 def start_positions_loop(

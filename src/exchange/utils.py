@@ -60,6 +60,11 @@ async def safe_timeout_method(
         async with async_timeout.timeout(timeout):
             result = await func(*args)
             return result
+    except (ccxt.errors.ArgumentsRequired, ccxt.errors.AuthenticationError) as err:
+        logging.getLogger(log_str).exception(
+            "%s(%s) failed: %s", func.__name__, args, err.__class__.__name__
+        )
+        raise
     except (ccxt.errors.NetworkError, asyncio.TimeoutError) as err:
         logging.getLogger(log_str).error(
             "%s(%s) failed: %s", func.__name__, args, err.__class__.__name__

@@ -10,7 +10,7 @@ install_redis:
 	sudo apt-get -y install redis
 
 start_fetcher_redis:
-	echo "starting redis-server conf/redis_bot.conf"
+	echo "starting redis-server"
 	redis-server config/redis.conf
 
 start_app:

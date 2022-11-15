@@ -13,8 +13,6 @@ try:
     import ccxtpro as ccxt
 except ImportError:
     import ccxt.async_support as ccxt
-
-
 OrderSymbolCache = dict[str, dict[str, OrderDict]]
 OrderCache = dict[str, OrderSymbolCache]
 
@@ -38,6 +36,8 @@ def start_open_orders_loop(
             tasks.append(
                 asyncio.create_task(watch_gateio_open_orders_loop(client, redis_db))
             )
+        elif client.id == "bitmart":
+            continue
         elif client.has.get("watchOrders"):
             tasks.append(asyncio.create_task(watch_open_orders_loop(client, redis_db)))
         else:

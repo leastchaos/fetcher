@@ -86,7 +86,7 @@ def get_ticker(account_name: available_accounts, symbol: str) -> Ticker:
         return Ticker.parse_obj(get_data(redis_client, key)[symbol])
     except Exception:
         symbol = symbol.split(":")[0]
-        return Ticker.parse_obj(get_data(redis_client, key)[symbol])
+        return Ticker.dummy(symbol)
 
 
 def get_ticker_price(ticker: Ticker) -> float:
